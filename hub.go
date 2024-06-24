@@ -33,6 +33,7 @@ func (h *hub) subscribe(ctx context.Context, s *subscriber) error {
 
 	go func() {
 		select {
+		case <-s.quit:
 		case <-ctx.Done():
 			h.Lock()
 			delete(h.subs, s) // 從 hub 的訂閱者清單中, 刪除此筆
@@ -42,6 +43,16 @@ func (h *hub) subscribe(ctx context.Context, s *subscriber) error {
 
 	go s.run(ctx) // context: 上下文,控制 subscriber 的生命週期
 	return nil    // nil 是訂閱成功情況下, 回傳的訊息
+}
+
+// 從 hub 中取消指定的訂閱者，如果操作成功返回nil，否則傳回錯誤訊息
+func (h *hub) unsubscribe(ctx context.Context, s *subscriber) error {
+	log.Println("starting 💔 unsubscribe function, receiver hub and sub: ", s)
+	h.Lock()
+	delete(h.subs, s)
+	h.Unlock()
+	close(s.quit)
+	return nil
 }
 
 func (h *hub) Subscribers() int {
