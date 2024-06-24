@@ -33,12 +33,22 @@ func (s *subscriber) run(ctx context.Context) {
 		// T <- ch operator用於從 channel 中接收數據
 		// ch <- value 向 channel 發送數據
 		case msg := <-s.handler:
-			log.Println(msg.data)
+			log.Println("[subscriber run]", s.name, string(msg.data))
 		case <-s.quit:
 			return
 		case <-ctx.Done():
 			return
 		}
+	}
+}
+
+func (s *subscriber) publish(ctx context.Context, msg *message) {
+	log.Println("starting publish function, receiver subscriber 🆂 🆂 🆂")
+	select {
+	case <-ctx.Done():
+		return
+	case s.handler <- msg:
+	default:
 	}
 }
 
